@@ -146,11 +146,11 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 # CLUSTER METADATA (màu & nhãn)
 # ──────────────────────────────────────────────────────────────────────────────
 CLUSTER_META = {
-    0: {"label": "New / Inactive",   "color": "#6d4c41", "bg": "#ede0d4"},
-    1: {"label": "Loyal Customers",  "color": "#1565c0", "bg": "#dbeafe"},
-    2: {"label": "Super VIP",        "color": "#b8860b", "bg": "#fff8dc"},
-    3: {"label": "Champions",        "color": "#2d6a4f", "bg": "#d8f3dc"},
-    4: {"label": "Potential Loyals", "color": "#6a0572", "bg": "#f3d9fa"},
+    0: {"label": "New / Inactive",   "color": "#6d4c41", "bg": "#ede0d4", "tip": "Gửi ưu đãi kích hoạt & giảm giá đơn hàng tiếp theo"},
+    1: {"label": "Loyal Customers",  "color": "#1565c0", "bg": "#dbeafe", "tip": "Cross-sell sản phẩm liên quan & thúc đẩy lên VIP"},
+    2: {"label": "Super VIP",        "color": "#b8860b", "bg": "#fff8dc", "tip": "Chăm sóc 1-1, early access & quà tặng cá nhân hóa"},
+    3: {"label": "Champions",        "color": "#2d6a4f", "bg": "#d8f3dc", "tip": "Giữ chân bằng loyalty reward & ambassador program"},
+    4: {"label": "Potential Loyals", "color": "#6a0572", "bg": "#f3d9fa", "tip": "Second-purchase incentive & onboarding email series"},
 }
 
 def cluster_meta(cid):
@@ -521,6 +521,11 @@ with tab3:
                 </div>
                 <div class="pred-label" style="color:{meta['color']};">
                     {meta['label']}
+                </div>
+                <div style="margin-top:0.8rem; font-size:0.82rem; font-weight:500;
+                            color:{meta['color']}; opacity:0.85;
+                            border-top:1px solid {meta['color']}30; padding-top:0.6rem;">
+                    💡 {meta.get('tip', '')}
                 </div>
             </div>""", unsafe_allow_html=True)
 
