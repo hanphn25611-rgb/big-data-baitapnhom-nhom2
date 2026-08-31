@@ -4,6 +4,7 @@ H&M Big Data – RFM Clustering Dashboard
 Streamlit app – Mục 4 Bài tập nhóm Big Data
 """
 
+import os
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -168,9 +169,10 @@ def load_data(seg_file, stats_file, ksel_file):
 # ──────────────────────────────────────────────────────────────────────────────
 # SIDEBAR – file upload
 # ──────────────────────────────────────────────────────────────────────────────
-DEFAULT_SEG   = "data/customer_segments.csv"
-DEFAULT_STATS = "data/cluster_rfm_stats.csv"
-DEFAULT_KSEL  = "data/k_means_k_selection_summary.csv"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_SEG   = os.path.join(_HERE, "data", "customer_segments.csv")
+DEFAULT_STATS = os.path.join(_HERE, "data", "cluster_rfm_stats.csv")
+DEFAULT_KSEL  = os.path.join(_HERE, "data", "k_means_k_selection_summary.csv")
 
 with st.sidebar:
     st.markdown("## 🛍️ H&M RFM Dashboard")
@@ -194,8 +196,6 @@ with st.sidebar:
     st.caption("Bài tập nhóm – Big Data | H&M Dataset")
 
 # Xác định nguồn file thực sự sẽ dùng
-import os
-
 if data_mode == "📂 Dùng dữ liệu mặc định":
     if not os.path.exists(DEFAULT_SEG) or not os.path.exists(DEFAULT_STATS):
         st.error("⚠️ Không tìm thấy file mặc định trong thư mục `data/`. Vui lòng chọn **Upload file của bạn** hoặc thêm file vào repo.")
