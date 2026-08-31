@@ -150,7 +150,7 @@ CLUSTER_META = {
     1: {"label": "Loyal Customers",  "color": "#1565c0", "bg": "#dbeafe", "tip": "Cross-sell sản phẩm liên quan & thúc đẩy lên VIP"},
     2: {"label": "Super VIP",        "color": "#b8860b", "bg": "#fff8dc", "tip": "Chăm sóc 1-1, early access & quà tặng cá nhân hóa"},
     3: {"label": "Champions",        "color": "#2d6a4f", "bg": "#d8f3dc", "tip": "Giữ chân bằng loyalty reward & ambassador program"},
-    4: {"label": "Potential Loyals", "color": "#6a0572", "bg": "#f3d9fa", "tip": "Second-purchase incentive & onboarding email series"},
+    4: {"label": "Potential Loyals", "color": "#6a0572", "bg": "#f3d9fa", "tip": "Khuyến khích lần mua tiếp theo & chương trình onboarding"},
 }
 
 def cluster_meta(cid):
@@ -493,6 +493,19 @@ with tab3:
         st.markdown("<br>", unsafe_allow_html=True)
         predict_btn = st.button("🔮  Dự đoán phân khúc", type="primary", use_container_width=True)
 
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("**Các phân khúc khách hàng:**")
+        for cid, meta in sorted(CLUSTER_META.items()):
+            if cid >= n_clusters:
+                continue
+            st.markdown(f"""
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.35rem;">
+                <span class="badge" style="background:{meta['bg']}; color:{meta['color']};">
+                    Cluster {cid}
+                </span>
+                <span style="font-weight:600; color:{meta['color']}; font-size:0.85rem;">{meta['label']}</span>
+            </div>""", unsafe_allow_html=True)
+
     with col_result:
         if predict_btn:
             # Scale input (tránh chia cho 0 khi std = 0)
@@ -559,18 +572,4 @@ with tab3:
                 <div style="font-weight:600; font-size:1rem; color:#8a9bb0;">
                     Điền chỉ số RFM và nhấn<br><em>"Dự đoán phân khúc"</em>
                 </div>
-            </div>""", unsafe_allow_html=True)
-
-        # Always show cluster legend
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("**Các phân khúc khách hàng:**")
-        for cid, meta in sorted(CLUSTER_META.items()):
-            if cid >= n_clusters:
-                continue
-            st.markdown(f"""
-            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.35rem;">
-                <span class="badge" style="background:{meta['bg']}; color:{meta['color']};">
-                    Cluster {cid}
-                </span>
-                <span style="font-weight:600; color:{meta['color']}; font-size:0.85rem;">{meta['label']}</span>
             </div>""", unsafe_allow_html=True)
