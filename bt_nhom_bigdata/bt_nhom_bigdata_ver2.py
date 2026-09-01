@@ -145,7 +145,9 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 # ──────────────────────────────────────────────────────────────────────────────
 # CLUSTER METADATA (màu & nhãn)
 # ──────────────────────────────────────────────────────────────────────────────
-CLUSTER_META = {
+
+# Hardcode cho chế độ dữ liệu mặc định (K=5, H&M dataset)
+CLUSTER_META_DEFAULT = {
     0: {"label": "New / Inactive",   "color": "#6d4c41", "bg": "#ede0d4", "tip": "Gửi ưu đãi kích hoạt & giảm giá đơn hàng tiếp theo"},
     1: {"label": "Loyal Customers",  "color": "#1565c0", "bg": "#dbeafe", "tip": "Cross-sell sản phẩm liên quan & thúc đẩy lên VIP"},
     2: {"label": "Super VIP",        "color": "#b8860b", "bg": "#fff8dc", "tip": "Chăm sóc 1-1, early access & quà tặng cá nhân hóa"},
@@ -153,8 +155,92 @@ CLUSTER_META = {
     4: {"label": "Potential Loyals", "color": "#6a0572", "bg": "#f3d9fa", "tip": "Khuyến khích lần mua tiếp theo & chương trình onboarding"},
 }
 
+# Bảng màu dynamic cho chế độ upload (tối đa 10 cluster)
+_PALETTE = [
+    {"color": "#6d4c41", "bg": "#ede0d4"},
+    {"color": "#1565c0", "bg": "#dbeafe"},
+    {"color": "#b8860b", "bg": "#fff8dc"},
+    {"color": "#2d6a4f", "bg": "#d8f3dc"},
+    {"color": "#6a0572", "bg": "#f3d9fa"},
+    {"color": "#c62828", "bg": "#fce4ec"},
+    {"color": "#00796b", "bg": "#e0f2f1"},
+    {"color": "#4527a0", "bg": "#ede7f6"},
+    {"color": "#558b2f", "bg": "#f1f8e9"},
+    {"color": "#e65100", "bg": "#fff3e0"},
+]
+
+_TIPS = {
+    "Champions":       "Giữ chân bằng loyalty reward & ambassador program",
+    "Loyal Customers": "Cross-sell sản phẩm liên quan & thúc đẩy lên VIP",
+    "Potential Loyals":"Khuyến khích lần mua tiếp theo & chương trình onboarding",
+    "New / Inactive":  "Gửi ưu đãi kích hoạt & giảm giá đơn hàng tiếp theo",
+    "At Risk":         "Win-back chi phí thấp, ưu tiên nếu historical value cao",
+    "Super VIP":       "Chăm sóc 1-1, early access & quà tặng cá nhân hóa",
+    "Can't Lose Them": "Cảnh báo sớm & offer cao cấp để giữ chân ngay lập tức",
+    "Lost":            "Loại bỏ hoặc duy trì chi phí tối thiểu",
+}
+
+def _auto_label(cid, df_stats):
+    """Tự động gán nhãn cluster dựa trên rank RFM và phát hiện outlier."""
+    idx = df_stats[df_stats["cluster"] == cid].index[0]
+
+    # Phát hiện Super VIP dùng mean + 2*std robust
+    # Bước 1: tính mean/std lần đầu
+    f_values = df_stats["Avg_Frequency"]
+    f_val    = df_stats.loc[idx, "Avg_Frequency"]
+    f_mean   = f_values.mean()
+    f_std    = f_values.std()
+    # Bước 2: loại outlier thô rồi tính lại mean/std sạch
+    mask         = f_values <= f_mean + 2 * f_std
+    f_mean_clean = f_values[mask].mean()
+    f_std_clean  = f_values[mask].std() if mask.sum() > 1 else 0
+    # Bước 3: phát hiện outlier thật sự bằng mean/std sạch
+    if f_val > f_mean_clean + 2 * f_std_clean:
+        return "Super VIP"
+
+    # Rank tương đối (0–1), R đảo ngược vì R thấp = mua gần đây = tốt hơn
+    r_rank = 1 - df_stats["Avg_Recency"].rank(pct=True)[idx]
+    f_rank = df_stats["Avg_Frequency"].rank(pct=True)[idx]
+    m_rank = df_stats["Avg_Monetary"].rank(pct=True)[idx]
+    score  = (r_rank * 0.3) + (f_rank * 0.4) + (m_rank * 0.3)
+
+    # Can't Lose Them: F và M cao (từng là khách tốt) nhưng R thấp (lâu không mua)
+    if r_rank <= 0.2 and f_rank >= 0.6 and m_rank >= 0.6:
+        return "Can't Lose Them"
+
+    # Lost: R, F, M đều rất thấp
+    if r_rank <= 0.2 and f_rank <= 0.2 and m_rank <= 0.2:
+        return "Lost"
+
+    if score >= 0.8:   return "Champions"
+    elif score >= 0.6: return "Loyal Customers"
+    elif score >= 0.4: return "Potential Loyals"
+    elif score >= 0.2: return "New / Inactive"
+    else:              return "At Risk"
+
+def _build_cluster_meta(df_stats):
+    """Xây dựng CLUSTER_META động từ df_stats, xử lý trùng tên."""
+    labels_raw = {int(row["cluster"]): _auto_label(int(row["cluster"]), df_stats)
+                  for _, row in df_stats.iterrows()}
+    counts = {}
+    meta = {}
+    for cid, label in sorted(labels_raw.items()):
+        counts[label] = counts.get(label, 0) + 1
+        final_label = f"{label} {counts[label]}" if counts[label] > 1 else label
+        palette = _PALETTE[cid % len(_PALETTE)]
+        meta[cid] = {
+            "label": final_label,
+            "color": palette["color"],
+            "bg":    palette["bg"],
+            "tip":   _TIPS.get(label, "Phân tích thêm để đưa ra chiến lược phù hợp"),
+        }
+    return meta
+
+# CLUSTER_META sẽ được gán sau khi biết data_mode và load xong df_stats
+CLUSTER_META = CLUSTER_META_DEFAULT
+
 def cluster_meta(cid):
-    return CLUSTER_META.get(int(cid), {"label": f"Cluster {cid}", "color": "#555", "bg": "#eee"})
+    return CLUSTER_META.get(int(cid), {"label": f"Cluster {cid}", "color": "#555", "bg": "#eee", "tip": ""})
 
 # ──────────────────────────────────────────────────────────────────────────────
 # DATA LOADING
@@ -229,6 +315,12 @@ with st.spinner("Đang tải dữ liệu..."):
 # Ensure cluster column is int
 df_seg["cluster"] = df_seg["cluster"].astype(int)
 df_stats["cluster"] = df_stats["cluster"].astype(int)
+
+# Gán CLUSTER_META theo chế độ dữ liệu
+if data_mode == "⬆️ Upload file của bạn":
+    CLUSTER_META = _build_cluster_meta(df_stats)
+else:
+    CLUSTER_META = CLUSTER_META_DEFAULT
 
 # Compute scaler params & centroids from raw data
 scaler_mean = df_seg[["recency","frequency","monetary"]].mean()
