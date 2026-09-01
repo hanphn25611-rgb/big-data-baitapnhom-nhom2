@@ -193,10 +193,15 @@ def _auto_label(cid, df_stats):
     if f_val > q3 + 1.5 * iqr:
         return "Super VIP"
 
+    # Loại Super VIP ra trước khi tính rank để tránh outlier kéo rank các cluster còn lại
+    outlier_mask = df_stats["Avg_Frequency"] <= q3 + 1.5 * iqr
+    df_rank = df_stats[outlier_mask]
+    idx_rank = df_rank[df_rank["cluster"] == cid].index[0]
+
     # Rank tương đối (0–1), R đảo ngược vì R thấp = mua gần đây = tốt hơn
-    r_rank = 1 - df_stats["Avg_Recency"].rank(pct=True)[idx]
-    f_rank = df_stats["Avg_Frequency"].rank(pct=True)[idx]
-    m_rank = df_stats["Avg_Monetary"].rank(pct=True)[idx]
+    r_rank = 1 - df_rank["Avg_Recency"].rank(pct=True)[idx_rank]
+    f_rank = df_rank["Avg_Frequency"].rank(pct=True)[idx_rank]
+    m_rank = df_rank["Avg_Monetary"].rank(pct=True)[idx_rank]
     score  = (r_rank * 0.3) + (f_rank * 0.4) + (m_rank * 0.3)
 
     # Can't Lose Them: F và M cao (từng là khách tốt) nhưng R thấp (lâu không mua)
