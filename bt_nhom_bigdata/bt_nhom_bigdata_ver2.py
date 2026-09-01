@@ -184,18 +184,13 @@ def _auto_label(cid, df_stats):
     """Tự động gán nhãn cluster dựa trên rank RFM và phát hiện outlier."""
     idx = df_stats[df_stats["cluster"] == cid].index[0]
 
-    # Phát hiện Super VIP dùng mean + 2*std robust
-    # Bước 1: tính mean/std lần đầu
+    # Phát hiện Super VIP dùng IQR (robust, không bị outlier kéo ngưỡng)
     f_values = df_stats["Avg_Frequency"]
     f_val    = df_stats.loc[idx, "Avg_Frequency"]
-    f_mean   = f_values.mean()
-    f_std    = f_values.std()
-    # Bước 2: loại outlier thô rồi tính lại mean/std sạch
-    mask         = f_values <= f_mean + 2 * f_std
-    f_mean_clean = f_values[mask].mean()
-    f_std_clean  = f_values[mask].std() if mask.sum() > 1 else 0
-    # Bước 3: phát hiện outlier thật sự bằng mean/std sạch
-    if f_val > f_mean_clean + 2 * f_std_clean:
+    q1 = f_values.quantile(0.25)
+    q3 = f_values.quantile(0.75)
+    iqr = q3 - q1
+    if f_val > q3 + 1.5 * iqr:
         return "Super VIP"
 
     # Rank tương đối (0–1), R đảo ngược vì R thấp = mua gần đây = tốt hơn
