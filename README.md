@@ -74,7 +74,7 @@ bt_nhom_bigdata/
 
 ## Hướng dẫn tái tạo pipeline
 
-1. Mở notebook trên Google Colab
+1. Mở notebook trên Google Colab https://colab.research.google.com/drive/1DZUNqdB_dQC4Yf8aiAHkFwfXY_mqVnBq?usp=sharing&authuser=1
 2. Chạy các cell theo thứ tự để tính toán RFM, chọn K tối ưu (xem biểu đồ Elbow/Silhouette), huấn luyện KMeans
 3. Tải xuống 3 file CSV artifact từ `/content/`
 4. Upload lên Streamlit app qua sidebar → chọn **"Upload file của bạn"**
