@@ -574,8 +574,7 @@ with tab3:
         m_min, m_max = float(df_seg["monetary"].min()), max(float(df_seg["monetary"].max()), float(df_seg["monetary"].min()) + 1.0)
 
         recency   = st.slider("📅 Recency (số ngày từ lần mua cuối)",
-                              min_value=r_min, max_value=r_max, value=(r_min+r_max)//2,
-                              help="Càng nhỏ = mua gần đây càng nhiều")
+                              min_value=r_min, max_value=r_max, value=(r_min+r_max)//2)
         frequency = st.slider("🔁 Frequency (số lần giao dịch)",
                               min_value=f_min, max_value=f_max, value=(f_min+f_max)//2)
         monetary  = st.slider("💰 Monetary (tổng chi tiêu $)",
