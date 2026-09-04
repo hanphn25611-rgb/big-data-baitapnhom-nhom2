@@ -23,7 +23,7 @@ Google Colab + PySpark  (Batch Processing – offline)
 Streamlit App  (Serving Layer – online)
 ```
 
-Lợi thế: App chỉ đọc CSV artifact — không phụ thuộc dữ liệu gốc. Khi có dữ liệu mới, chỉ cần chạy lại notebook → upload 3 CSV → dashboard tự cập nhật.
+Lợi thế của kiến trúc này: Streamlit app chỉ đọc CSV artifact — không phụ thuộc dữ liệu gốc. Nếu muốn dùng kết quả từ pipeline khác, chỉ cần upload 3 CSV mới lên là dashboard tự cập nhật, không cần redeploy app.
 
 ## Công nghệ sử dụng
 
